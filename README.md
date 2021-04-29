@@ -1,5 +1,7 @@
 # flight-simulator
-Flight Simulator Data Fields ----------------------------  
+Flight Simulator Data Fields  
+----------------------------  
+
 Col 1: Ground Speed (kts)  
 Col 2: Altitude (feet)  
 Col 3: Heading (deg - from North)  
