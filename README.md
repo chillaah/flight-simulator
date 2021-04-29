@@ -3,7 +3,7 @@ Flight Simulator Data Fields
   
 Col 1: Ground Speed (kts)  
 Col 2: Altitude (feet)  
-Col 3: Heading (deg - from North)
+Col 3: Heading (deg - from North)  
 Col 4: Latitude (deg)  
 Col 5: Longitude (deg)  
   
