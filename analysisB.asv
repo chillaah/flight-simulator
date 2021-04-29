@@ -1,0 +1,17 @@
+%% EGB243 Task B
+
+flight4 = importdata('Flight4.csv');
+flight6 = importdata('Flight4.csv');
+flight9 = importdata('Flight4.csv');
+flight11 = importdata('Flight4.csv');
+flight13 = importdata('Flight4.csv');
+flight17 = importdata('Flight4.csv');
+flight25 = importdata('Flight4.csv');
+
+f4 = flight4.data;
+f6 = flight4.data;
+f9 = flight4.data;
+f4 = flight4.data;
+f4 = flight4.data;
+f4 = flight4.data;
+f4 = flight4.data;
