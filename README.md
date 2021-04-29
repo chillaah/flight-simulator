@@ -1,4 +1,3 @@
-# flight-simulator
 Flight Simulator Data Fields  
 ----------------------------  
 
