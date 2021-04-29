@@ -1,4 +1,4 @@
-%% EGB243 Task B
+%% EGB243 Task B - Team Bombardier
 close all; clear; clc
 
 % Flight Simulator Data Fields
