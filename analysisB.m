@@ -1,6 +1,6 @@
 %% EGB243 Task B - Team Bombardier
 close all; clear; clc
-%hi
+ 
 % Flight Simulator Data Fields
 % ----------------------------
 % 
@@ -34,106 +34,114 @@ f13 = flight13.data;
 f17 = flight17.data;
 f25 = flight25.data;
 
-% ground speed data
-groundSpeed = [  f4(:, 1);
-                 f6(:, 1);
-                 f9(:, 1);
-                f11(:, 1);
-                f13(:, 1);
-                f17(:, 1);
-                f25(:, 1) ];
-
-% altitude data
-flightAlt = [  f4(:, 2);
-               f6(:, 2);
-               f9(:, 2);
-              f11(:, 2);
-              f13(:, 2);
-              f17(:, 2);
-              f25(:, 2) ];
-          
-% heading angle data
-heading = [  f4(:, 3);
-             f6(:, 3);
-             f9(:, 3);
-            f11(:, 3);
-            f13(:, 3);
-            f17(:, 3);
-            f25(:, 3) ];
-
-% latitude data
-flightLat = [  f4(:, 4);
-               f6(:, 4);
-               f9(:, 4);
-              f11(:, 4);
-              f13(:, 4);
-              f17(:, 4);
-              f25(:, 4) ];
-
-% longitude data
-flightLon = [  f4(:, 5);
-               f6(:, 5);
-               f9(:, 5);
-              f11(:, 5);
-              f13(:, 5);
-              f17(:, 5);
-              f25(:, 5) ];
-
-% general data plots
-figure(1);
-t = linspace(0, 10, size(flightLat,1) + 1); t(end) = [];
-plot(t, flightLat, 'r--', 'LineWidth', 1.5);
-grid on
-box on
-title('Latitude Motion vs Time');
-ylabel('degrees [deg]');
-xlabel('t [seconds]');
-labelprop = get(gca,'ylabel');
-set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
-set(gca,'FontSize',20);
-
-figure(2);
-plot(t, flightLon, 'b--', 'LineWidth', 1.5);
-grid on
-box on
-title('Longitudinal Motion vs Time');
-ylabel('degrees [deg]');
-xlabel('t [seconds]');
-labelprop = get(gca,'ylabel');
-set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
-set(gca,'FontSize',20);
-
-figure(3);
-plot(t, flightAlt, 'm--', 'LineWidth', 1.5);
-grid on
-box on
-title('Altitude vs Time');
-ylabel('feet [ft]');
-xlabel('t [seconds]');
-labelprop = get(gca,'ylabel');
-set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
-set(gca,'FontSize',20);
-
-figure(4);
-plot(t, groundSpeed, 'k--', 'LineWidth', 1.5);
-grid on
-box on
-title('Ground Speed vs Time');
-ylabel('knots [kts]');
-xlabel('t [seconds]');
-labelprop = get(gca,'ylabel');
-set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
-set(gca,'FontSize',20);
-
-figure(5);
-plot(t, heading, 'g--', 'LineWidth', 1.5);
-grid on
-box on
-title('Heading Angle vs Time');
-ylabel('degrees [deg]');
-xlabel('t [seconds]');
-labelprop = get(gca,'ylabel');
-set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
-set(gca,'FontSize',20);
+% For loop to process data for every flight
+Nflights = 7;   %Manually set number of flights
+for i = 1:Nflights
+    
+    %Manually set each flight to an index of the loop
+    if i == 1
+        fltData = f4;
+    elseif i == 2
+        fltData = f6;
+    elseif i == 3
+        fltData = f9;
+    elseif i == 4
+        fltData = f11;
+    elseif i == 5
+        fltData = f13;
+    elseif i == 6
+        fltData = f17;
+    elseif i == 7
+        fltData = f25;        
+    end
+    
+    %Extract information from flight data
+    gndSpeed = fltData(:, 1);
+    Alt = fltData(:, 2);
+    heading = fltData(:, 3);
+    Lon = fltData(:, 4);
+    Lat = fltData(:, 5);
+    
+    Nsamps = length(gndSpeed);  %Find number of samples
+    Tsamp = 0.4;                %Hardcode sampling time
+   
+    %Tsamp in the time interval between samples. Therefore there will be 1
+    %less sampling interval than samples
+    Tsim = Tsamp*(Nsamps-1);    %Find flight time
+    t = 0:0.4:Tsim;             %Create time vector
+    
+    %plot latitude and longitude on the same axis
+    figure
+    subplot(2,1,1)
+    cmap = jet(max(round(gndSpeed))+1);
+    SpeedColours = cmap(round(gndSpeed)+1,:); 
+    scatter(Lon, Lat, 10, SpeedColours, 'filled');
+    grid on
+    box on
+    title('Top-Down Flight View');
+    ylabel('Latitude [deg]');
+    xlabel('Longitude [deg]');
+    labelprop = get(gca,'ylabel');
+    set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
+    colormap(cmap);
+    cbar = colorbar;
+    cbar.Ticks = linspace( 0, max(round(gndSpeed)), 5 );
+    caxis([0,max(round(gndSpeed))])
+    cbar.Label.String = 'Ground Speed (kts)';
 
 
+ %cbarprop = get(cbar,'Title');
+
+    subplot(2,1,2)
+    %plot(t, Alt, 'm--', 'LineWidth', 1.5);
+    scatter(t, Alt, 10, SpeedColours, 'filled');
+    grid on
+    box on
+    title('Altitude vs Time');
+    ylabel('feet [ft]');
+    xlabel('t [seconds]');
+    labelprop = get(gca,'ylabel');
+    set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
+    colormap(cmap);
+    cbar = colorbar;
+    cbar.Ticks = linspace( 0, max(round(gndSpeed)), 5 );
+    caxis([0,max(round(gndSpeed))])
+    cbar.Label.String = 'Ground Speed (kts)';
+    %set(gca,'FontSize',20);
+
+end
+
+
+%     hold on
+%     plot(t, Lon, 'b--', 'LineWidth', 1.5);
+%     grid on
+%     box on
+%     title('Longitude vs Time');
+%     ylabel('degrees [deg]');
+%     xlabel('t [seconds]');
+%     labelprop = get(gca,'ylabel');
+%     set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
+%     %set(gca,'FontSize',20);
+%     hold off
+
+%     figure(4);
+%     plot(t, groundSpeed, 'k--', 'LineWidth', 1.5);
+%     grid on
+%     box on
+%     title('Ground Speed vs Time');
+%     ylabel('knots [kts]');
+%     xlabel('t [seconds]');
+%     labelprop = get(gca,'ylabel');
+%     set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
+%     %set(gca,'FontSize',20);
+% 
+%     figure(5);
+%     plot(t, heading, 'g--', 'LineWidth', 1.5);
+%     grid on
+%     box on
+%     title('Heading Angle vs Time');
+%     ylabel('degrees [deg]');
+%     xlabel('t [seconds]');
+%     labelprop = get(gca,'ylabel');
+%     set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
+%     %set(gca,'FontSize',20);
