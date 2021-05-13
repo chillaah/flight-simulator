@@ -1,7 +1,8 @@
 %% EGB243 Task B - Team Bombardier
 close all; clear; clc
  
-% Flight Simulator Data Fields
+%% Section 1
+%Flight Simulator Data Fields
 % ----------------------------
 % 
 % Col 1: Ground Speed (kts)
@@ -34,9 +35,11 @@ f13 = flight13.data;
 f17 = flight17.data;
 f25 = flight25.data;
 
-% For loop to process data for every flight
 Nflights = 7;   %Manually set number of flights
+
+% For loop to process data for every flight
 for i = 1:Nflights
+    
     
     %Manually set each flight to an index of the loop
     if i == 1
@@ -55,9 +58,9 @@ for i = 1:Nflights
         fltData = f25;        
     end
     
-    %Extract information from flight data
-    gndSpeed = fltData(:, 1);
-    Alt = fltData(:, 2);
+    %Extract information from flight data and convert to SI units
+    gndSpeed = fltData(:, 1)/1.944;
+    Alt = fltData(:, 2)/3.281;
     heading = fltData(:, 3);
     Lon = fltData(:, 4);
     Lat = fltData(:, 5);
@@ -87,7 +90,7 @@ for i = 1:Nflights
     cbar = colorbar;
     cbar.Ticks = linspace( 0, max(round(gndSpeed)), 5 );
     caxis([0,max(round(gndSpeed))])
-    cbar.Label.String = 'Ground Speed (kts)';
+    cbar.Label.String = 'Ground Speed (m/s)';
 
 
  %cbarprop = get(cbar,'Title');
@@ -98,7 +101,7 @@ for i = 1:Nflights
     grid on
     box on
     title('Altitude vs Time');
-    ylabel('feet [ft]');
+    ylabel('Altitude [m]');
     xlabel('t [seconds]');
     labelprop = get(gca,'ylabel');
     set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
@@ -106,9 +109,51 @@ for i = 1:Nflights
     cbar = colorbar;
     cbar.Ticks = linspace( 0, max(round(gndSpeed)), 5 );
     caxis([0,max(round(gndSpeed))])
-    cbar.Label.String = 'Ground Speed (kts)';
+    cbar.Label.String = 'Ground Speed (m/s)';
     %set(gca,'FontSize',20);
+    
 
+    
+    %Get the velocity components in each direction
+    Vdown = zeros(1,Nsamps);
+    Veast = zeros(1,Nsamps);
+    Vnorth = zeros(1,Nsamps);
+    for ii = 2:Nsamps
+       %Down velocity = change in altitude / change in time
+       Vdown(ii-1) = (Alt(ii)- Alt(ii-1))/Tsamp;
+       
+       %Convert degrees of latitude and longitude to N and E distances
+       [dist,angle] = distance('rh',Lat(ii-1),Lon(ii-1),Lat(ii),Lon(ii));
+       xLat = dist*sin(angle);
+       xLon = dist*cos(angle);
+       %angle = 
+       Veast(ii-1) = xLat/Tsamp;
+       Vnorth(ii-1) = xLon/Tsamp;
+    end
+    
+    Mdown = movmean(Vdown,10);
+    Meast = movmean(Veast,10);
+    Mnorth = movmean(Vnorth,10);
+    
+    figure
+    subplot(3,1,1)
+    %plot(t, Alt, 'm--', 'LineWidth', 1.5);   
+    hold on, plot(t, Veast), plot(t, Meast)
+    title('East Velocity');
+    ylabel('Velocity [m/s]');
+    xlabel('t [seconds]');
+    labelprop = get(gca,'ylabel');
+    set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
+    subplot(3,1,2)
+    hold on,plot(t, Vnorth),plot(t, Mnorth)
+    subplot(3,1,3)
+    hold on,plot(t, Vdown),plot(t, Mdown)
+    grid on
+    box on
+    legend
+
+   
+    %set(gca,'FontSize',20);
 end
 
 
