@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.2">
+<Placemark>
+<name>Flight Test</name>
+<description></description>
+<Point>
+<coordinates>153.02759885787967,-27.477778315754975,0</coordinates>
+</Point>
+</Placemark>
+</kml>
