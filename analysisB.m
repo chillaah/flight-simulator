@@ -36,7 +36,9 @@ f17 = flight17.data;
 f25 = flight25.data;
 
 Nflights = 7;   %Manually set number of flights
-
+S = referenceSphere('earth');
+l_rw = zeros(1,Nflights);
+heading_rw = zeros(1,Nflights);
 % For loop to process data for every flight
 for i = 1:Nflights
     
@@ -75,7 +77,7 @@ for i = 1:Nflights
     
     %plot latitude and longitude on the same axis
     figure
-    subplot(2,1,1)
+    subplot(3,2,1)
     cmap = jet(max(round(gndSpeed))+1);
     SpeedColours = cmap(round(gndSpeed)+1,:); 
     scatter(Lon, Lat, 10, SpeedColours, 'filled');
@@ -84,8 +86,6 @@ for i = 1:Nflights
     title('Top-Down Flight View');
     ylabel('Latitude [deg]');
     xlabel('Longitude [deg]');
-    labelprop = get(gca,'ylabel');
-    set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
     colormap(cmap);
     cbar = colorbar;
     cbar.Ticks = linspace( 0, max(round(gndSpeed)), 5 );
@@ -95,7 +95,7 @@ for i = 1:Nflights
 
  %cbarprop = get(cbar,'Title');
 
-    subplot(2,1,2)
+    subplot(3,2,3)
     %plot(t, Alt, 'm--', 'LineWidth', 1.5);
     scatter(t, Alt, 10, SpeedColours, 'filled');
     grid on
@@ -103,8 +103,6 @@ for i = 1:Nflights
     title('Altitude vs Time');
     ylabel('Altitude [m]');
     xlabel('t [seconds]');
-    labelprop = get(gca,'ylabel');
-    set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
     colormap(cmap);
     cbar = colorbar;
     cbar.Ticks = linspace( 0, max(round(gndSpeed)), 5 );
@@ -118,44 +116,83 @@ for i = 1:Nflights
     Vdown = zeros(1,Nsamps);
     Veast = zeros(1,Nsamps);
     Vnorth = zeros(1,Nsamps);
+    az = zeros(1,Nsamps);
     for ii = 2:Nsamps
        %Down velocity = change in altitude / change in time
-       Vdown(ii-1) = (Alt(ii)- Alt(ii-1))/Tsamp;
+       Vdown(ii-1) = -((Alt(ii)- Alt(ii-1))/Tsamp);
        
        %Convert degrees of latitude and longitude to N and E distances
-       [dist,angle] = distance('rh',Lat(ii-1),Lon(ii-1),Lat(ii),Lon(ii));
-       xLat = dist*sin(angle);
-       xLon = dist*cos(angle);
-       %angle = 
+       %[dist(ii),angle(ii)] = distance(Lat(ii-1),Lon(ii-1),Lat(ii),Lon(ii),S);
+       xLat = distance(Lat(ii-1),Lon(ii),Lat(ii),Lon(ii),S);
+       if (Lat(ii-1)> Lat(ii))
+           xLat = -xLat;
+       end
+       
+       xLon = distance(Lat(ii),Lon(ii-1),Lat(ii),Lon(ii),S);
+       if (Lon(ii-1)> Lon(ii))
+           xLon = -xLon;
+       end
+       
        Veast(ii-1) = xLat/Tsamp;
        Vnorth(ii-1) = xLon/Tsamp;
+       az(ii-1) = azimuth(Lat(ii-1)-90,Lon(ii-1),Lat(ii)-90,Lon(ii));
     end
     
     Mdown = movmean(Vdown,10);
     Meast = movmean(Veast,10);
     Mnorth = movmean(Vnorth,10);
     
-    figure
-    subplot(3,1,1)
+    subplot(3,2,2)
     %plot(t, Alt, 'm--', 'LineWidth', 1.5);   
     hold on, plot(t, Veast), plot(t, Meast)
     title('East Velocity');
     ylabel('Velocity [m/s]');
     xlabel('t [seconds]');
-    labelprop = get(gca,'ylabel');
-    set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
-    subplot(3,1,2)
-    hold on,plot(t, Vnorth),plot(t, Mnorth)
-    subplot(3,1,3)
-    hold on,plot(t, Vdown),plot(t, Mdown)
     grid on
     box on
-    legend
+    subplot(3,2,4)
+    hold on,plot(t, Vnorth),plot(t, Mnorth)
+    title('North Velocity');
+    ylabel('Velocity [m/s]');
+    xlabel('t [seconds]');
+    grid on
+    box on
+    subplot(3,2,6)
+    hold on,plot(t, Vdown),plot(t, Mdown)
+    title('Down Velocity');
+    ylabel('Velocity [m/s]');
+    xlabel('t [seconds]');
+    grid on
+    box on
 
+   %Find runway length
+   threshold = 0.1;
+   indexes_gnd = find(Alt-Alt(1) < threshold );
+   [~,index_takeoff] = max(diff(indexes_gnd));
+   index_land = index_takeoff + 1;
+   indexes_rw = indexes_gnd([index_takeoff,index_land]);
+   l_rw(i) =  distance(Lat(indexes_rw(1)),Lon(indexes_rw(1)),Lat(indexes_rw(2)),Lon(indexes_rw(2)),S);
+   Lat_rw = Lat(indexes_rw);
+   Lon_rw = Lon(indexes_rw);
+   %set(gca,'FontSize',20);
    
-    %set(gca,'FontSize',20);
+   %find runway heading
+   angle_rw = az(1:indexes_rw(1));
+   angle_rw(gndSpeed(1:indexes_rw(1)) < threshold) = [];
+   heading_rw(i) = mean(angle_rw);
+   
+   
+   %plot runway
+   subplot(3,2,5)
+   plot3(Lon, Lat, Alt)
+   hold on
+   db = 0.0001;
+   plot3( [Lat_rw(1), Lat_rw(1), Lat_rw(2), Lat_rw(2), Lat_rw(1)], [Lon_rw(1), Lon_rw(1), Lon_rw(2), Lon_rw(2), Lon_rw(1)], [0,0,0,0,0],'k-' )
+   
 end
 
+l_rw_max  = max(l_rw); 
+h_rw = mean(heading_rw);
 
 %     hold on
 %     plot(t, Lon, 'b--', 'LineWidth', 1.5);
