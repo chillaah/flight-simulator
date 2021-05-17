@@ -166,7 +166,7 @@ for i = 1:Nflights
     box on
 
    %Find runway length
-   threshold = 0.1;
+   threshold = 1;
    indexes_gnd = find(Alt-Alt(1) < threshold );
    [~,index_takeoff] = max(diff(indexes_gnd));
    index_land = index_takeoff + 1;
@@ -184,11 +184,39 @@ for i = 1:Nflights
    
    %plot runway
    subplot(3,2,5)
-   plot3(Lon, Lat, Alt)
+   plot3(Lat, Lon, Alt)
    hold on
-   db = 0.0001;
-   plot3( [Lat_rw(1), Lat_rw(1), Lat_rw(2), Lat_rw(2), Lat_rw(1)], [Lon_rw(1), Lon_rw(1), Lon_rw(2), Lon_rw(2), Lon_rw(1)], [0,0,0,0,0],'k-' )
+   W_rw = 0.001;
+   runway_lat = [Lat_rw(1)-sin(deg2rad(heading_rw(i)))*W_rw, Lat_rw(1)+sin(deg2rad(heading_rw(i)))*W_rw, Lat_rw(2)+sin(deg2rad(heading_rw(i)))*W_rw, Lat_rw(2)-sin(deg2rad(heading_rw(i)))*W_rw, Lat_rw(1)-sin(deg2rad(heading_rw(i)))*W_rw];
+   runway_lon = [Lon_rw(1)+cos(deg2rad(heading_rw(i)))*W_rw, Lon_rw(1)-cos(deg2rad(heading_rw(i)))*W_rw, Lon_rw(2)-cos(deg2rad(heading_rw(i)))*W_rw, Lon_rw(2)+cos(deg2rad(heading_rw(i)))*W_rw, Lon_rw(1)+cos(deg2rad(heading_rw(i)))*W_rw];
+   plot3( runway_lat,runway_lon , [0,0,0,0,0],'k-' )
+   %sin(deg2rad(heading_rw(i)))*
    
+   %create annotations
+   if i == 4
+    dim = [.15 .05 .3 .3];
+    str = 'Best Circuit Flown';
+    annotation('textbox',dim,'String',str,'FitBoxToText','on');
+   end
+   
+   if (i == 6 || i == 7)
+    dim = [.15 .05 .3 .3];
+    str = 'Flown in windy conditons';
+    annotation('textbox',dim,'String',str,'FitBoxToText','on');
+   end
+   
+   a_lift = zeros(1,Nsamps);
+   for ii = 2:Nsamps
+    %Find down acceleration to find lift 
+    a_lift(ii-1) = -(Vdown(ii)- Vdown(ii-1))/Tsamp; 
+   end
+
+    figure
+    hold on
+    plot(t,az) 
+    plot(t,a_lift)
+    plot(t,gndSpeed)
+    plot(t,Alt)
 end
 
 l_rw_max  = max(l_rw); 
