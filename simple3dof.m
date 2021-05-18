@@ -26,7 +26,7 @@ for i = 2:Nsamps
 end
 %% (Task 4) Plotting 
 %TODO: Plot the 2D (x,y) trajectory
-f1 = figure(1); hold off
+f1 = figure; hold off
     plot3(x,y,z,'LineWidth',1); grid on
     title('3D trajectory');
     xlabel('x (m)');
@@ -36,7 +36,7 @@ f1 = figure(1); hold off
 
 %TODO: Create a two-axis plot showing the airplane's yaw (left) and 
 % x position (left) versus time.
-f2 = figure(2); hold off
+f2 = figure; hold off
     clf; hold on;
     yyaxis left
     plot(t,yaw);
