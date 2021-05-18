@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = circuitsim(t,v,yaw,pitch,pos)
+function [f2] = simple3dof(t,v,yaw,pitch)
 %circuit sim creates a basic 3DOF simulation of an aircraft
 %   Detailed explanation goes here
 %t: time vector
@@ -9,6 +9,7 @@ function [outputArg1,outputArg2] = circuitsim(t,v,yaw,pitch,pos)
 
 dt = t(2)-t(1); % Time step (sampling time)
 Nsamps = length(t);
+tf = t(end);
 
 %TODO: initialise the state vectors (x,y and z) with the airplane position
 x = zeros(1,length(t));
@@ -52,7 +53,5 @@ f2 = figure(2); hold off
     xlabel('Time (s)');
     xlim([0,tf]);
 
-outputArg1 = inputArg1;
-outputArg2 = inputArg2;
 end
 

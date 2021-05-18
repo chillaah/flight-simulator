@@ -1,7 +1,7 @@
 %% EGB243 Task B - Team Bombardier
 close all; clear; clc
  
-%% Section 1
+%% Section 1 a
 %Flight Simulator Data Fields
 % ----------------------------
 % 
@@ -39,6 +39,7 @@ Nflights = 7;   %Manually set number of flights
 S = referenceSphere('earth');
 l_rw = zeros(1,Nflights);
 heading_rw = zeros(1,Nflights);
+tf = zeros(1,Nflights);
 % For loop to process data for every flight
 for i = 1:Nflights
     
@@ -211,47 +212,60 @@ for i = 1:Nflights
     a_lift(ii-1) = -(Vdown(ii)- Vdown(ii-1))/Tsamp; 
    end
 
-    figure
-    hold on
-    plot(t,az) 
-    plot(t,a_lift)
-    plot(t,gndSpeed)
-    plot(t,Alt)
+   tf(i) = t(end);
+%     figure
+%     hold on
+%     plot(t,az) 
+%     plot(t,a_lift)
+%     plot(t,gndSpeed)
+%     plot(t,Alt)
 end
 
 l_rw_max  = max(l_rw); 
 h_rw = mean(heading_rw);
+tf_av = mean (tf);
 
-%     hold on
-%     plot(t, Lon, 'b--', 'LineWidth', 1.5);
-%     grid on
-%     box on
-%     title('Longitude vs Time');
-%     ylabel('degrees [deg]');
-%     xlabel('t [seconds]');
-%     labelprop = get(gca,'ylabel');
-%     set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
-%     %set(gca,'FontSize',20);
-%     hold off
+%% Section 1 b
+%Create time vector for perfect circuit simulation
+t_p = 0:0.4:tf_av; 
+Nsamps_p = length(tp);
+%Create input vectors for perfect circuit simulation
+%velocity vector
+%perfect top speed is 150kts = 77m/s
+%accelerate to top spee quickly and then decelerate quickly
+v_p = [linspace(0,77,round(Nsamps_p/10)) ...
+     77*ones(1,round(4*Nsamps_p/5))...
+     linspace(77,0,round(Nsamps_p/10))];
 
-%     figure(4);
-%     plot(t, groundSpeed, 'k--', 'LineWidth', 1.5);
-%     grid on
-%     box on
-%     title('Ground Speed vs Time');
-%     ylabel('knots [kts]');
-%     xlabel('t [seconds]');
-%     labelprop = get(gca,'ylabel');
-%     set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
-%     %set(gca,'FontSize',20);
-% 
-%     figure(5);
-%     plot(t, heading, 'g--', 'LineWidth', 1.5);
-%     grid on
-%     box on
-%     title('Heading Angle vs Time');
-%     ylabel('degrees [deg]');
-%     xlabel('t [seconds]');
-%     labelprop = get(gca,'ylabel');
-%     set(labelprop,'rotation',0,'VerticalAlignment','middle', 'HorizontalAlignment', 'right');
-%     %set(gca,'FontSize',20);
+%pitch vector 
+%critical airfoil angle is 15 for many aircraft
+pitch_p = deg2rad([zeros(1,ceil(Nsamps_p/20)),...
+                   linspace(0,15,ceil(Nsamps_p/20)),...
+                   15*ones(1,ceil(Nsamps_p/10)),...
+                   linspace(15,0,ceil(Nsamps_p/20)),...
+                   zeros(1,ceil(Nsamps_p/2)),...
+                   linspace(0,-15,ceil(Nsamps_p/20)),...
+                   -15*ones(1,ceil(Nsamps_p/10)),...
+                   linspace(-15,0,ceil(Nsamps_p/20)),...
+                   zeros(1,ceil(Nsamps_p/20))]);
+pitch_p = pitch_p(1:Nsamps_p);          
+
+%yaw vector
+%perfect circuit involves 4 90 degree turns. The first turn should start as
+%soon as the aircraft reaches its peak height.
+
+yaw_p = deg2rad([zeros(1,ceil(Nsamps_p/6)),...
+                   linspace(0,90,ceil(Nsamps_p/18)),...
+                   90*ones(1,ceil(Nsamps_p/18)),...
+                   linspace(90,180,ceil(Nsamps_p/18)),...
+                   180*ones(1,ceil(Nsamps_p/3)),...
+                   linspace(180,270,ceil(Nsamps_p/18)),...
+                   270*ones(1,ceil(Nsamps_p/18)),...
+                   linspace(270,360,ceil(Nsamps_p/18)),...
+                   zeros(1,ceil(Nsamps_p/6))]);
+
+ yaw_p = yaw_p(1:Nsamps_p);
+ 
+ simple3dof(t_p,v_p,yaw_p,pitch_p)
+ 
+ 
