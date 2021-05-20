@@ -171,15 +171,15 @@ for i = 1:Nflights
    indexes_gnd = find(Alt-Alt(1) < threshold );
    [~,index_takeoff] = max(diff(indexes_gnd));
    index_land = index_takeoff + 1;
-   indexes_rw = indexes_gnd([index_takeoff,index_land]);
-   l_rw(i) =  distance(Lat(indexes_rw(1)),Lon(indexes_rw(1)),Lat(indexes_rw(2)),Lon(indexes_rw(2)),S);
-   Lat_rw = Lat(indexes_rw);
-   Lon_rw = Lon(indexes_rw);
+   i_rw = indexes_gnd([index_takeoff,index_land]);
+   l_rw(i) =  distance(Lat(i_rw(1)),Lon(i_rw(1)),Lat(i_rw(2)),Lon(i_rw(2)),S);
+   Lat_rw = Lat(i_rw);
+   Lon_rw = Lon(i_rw);
    %set(gca,'FontSize',20);
    
    %find runway heading
-   angle_rw = az(1:indexes_rw(1));
-   angle_rw(gndSpeed(1:indexes_rw(1)) < threshold) = [];
+   angle_rw = az(1:i_rw(1));
+   angle_rw(gndSpeed(1:i_rw(1)) < threshold) = [];
    heading_rw(i) = mean(angle_rw);
    
    
@@ -220,11 +220,61 @@ for i = 1:Nflights
 %     plot(t,a_lift)
 %     plot(t,gndSpeed)
 %     plot(t,Alt)
+
+%Save values from 6th and 7th flights to estimate wind
+    if i == 6
+        gndSpeed_6 = gndSpeed;
+        az_6 = az;
+    end
+    
+    if i == 7
+        gndSpeed_7 = gndSpeed;
+        az_7 = az;
+    end
+
+%Save values from 4th flight for later replication
+    if i == 4
+        t_4 = t;
+        v_4 = sqrt(Vnorth.^2 + Veast.^2 + Vdown.^2);
+        yaw_4 = atan2(Veast,Vnorth);
+        pitch_4 = atan((-Vdown)./(sqrt(Vnorth.^2 + Veast.^2)));
+        pitch_4(isnan(pitch_4)) = 0;
+        
+    end
+
 end
 
 l_rw_max  = max(l_rw); 
 h_rw = mean(heading_rw);
 tf_av = mean (tf);
+
+%Estimate wind direction and magnitude 
+%Graphically find 2 indices of wind [tailwind, headwind]
+i_wind_6 = round([47.6/Tsamp, 96/Tsamp]);
+i_wind_7 = round([150/Tsamp, 319.2/Tsamp]);
+
+%For Flight 6
+%Find airspeed as the average of headwind and tailwind
+airSpeed_6 = mean(gndSpeed_6(i_wind_6));
+
+%windspeed is found by subtracting groundspeed from airspeed
+windSpeed_6 = gndSpeed_6(i_wind_6) - airSpeed_6; 
+%Select 1st value of windspeed (tailwind) as it will be positive
+windSpeed_6 = windSpeed_6(1); 
+
+%find azimuth angle (heading) the direction the wind is at it's greatest
+windDir_6 = az_6(i_wind_6);
+%Choose 1st value of wind direction (tailwind) to find wind heading
+windDir_6 = windDir_6(1);
+
+%Repeat process for flight 7
+airSpeed_7 = mean(gndSpeed_7(i_wind_7));
+windSpeed_7 = gndSpeed_7(i_wind_7) - airSpeed_7;
+windSpeed_7 = windSpeed_7(1);
+windDir_7 = az_7(i_wind_7);
+windDir_7 = windDir_7(1);
+
+
 
 %% Section 1 b
 %Create time vector for perfect circuit simulation
@@ -256,17 +306,23 @@ pitch_p = pitch_p(1:Nsamps_p);
 %soon as the aircraft reaches its peak height.
 
 yaw_p = deg2rad([zeros(1,ceil(Nsamps_p/6)),...
-                   linspace(0,90,ceil(Nsamps_p/18)),...
-                   90*ones(1,ceil(Nsamps_p/18)),...
-                   linspace(90,180,ceil(Nsamps_p/18)),...
-                   180*ones(1,ceil(Nsamps_p/3)),...
-                   linspace(180,270,ceil(Nsamps_p/18)),...
-                   270*ones(1,ceil(Nsamps_p/18)),...
-                   linspace(270,360,ceil(Nsamps_p/18)),...
-                   zeros(1,ceil(Nsamps_p/6))]);
+                   linspace(0,90,ceil(Nsamps_p/15)),...
+                   90*ones(1,ceil(Nsamps_p/15)),...
+                   linspace(90,180,ceil(Nsamps_p/15)),...
+                   180*ones(1,ceil(Nsamps_p/3.75)),...
+                   linspace(180,270,ceil(Nsamps_p/15)),...
+                   270*ones(1,ceil(Nsamps_p/15)),...
+                   linspace(270,360,ceil(Nsamps_p/15)),...
+                   zeros(1,ceil(Nsamps_p/6))] + h_rw );
 
  yaw_p = yaw_p(1:Nsamps_p);
  
+ %simulate perfectly flown circuit
  simple3dof(t_p,v_p,yaw_p,pitch_p)
+ 
+ 
+ %Replicate flight 4
+ simple3dof(t_4,v_4,yaw_4,pitch_4)
+ 
  
  

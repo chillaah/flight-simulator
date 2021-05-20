@@ -1,4 +1,4 @@
-function [f2] = simple3dof(t,v,yaw,pitch)
+function [f1,f2] = simple3dof(t,v,yaw,pitch)
 %circuit sim creates a basic 3DOF simulation of an aircraft
 %   Detailed explanation goes here
 %t: time vector
