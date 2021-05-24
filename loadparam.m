@@ -1,12 +1,13 @@
 function [ c ] = loadparam(aircraft)
 
-% Note this file will load the aircraft parameters. This include the 
+% Note that this file will load the aircraft parameters. This includes the 
 % physical parameters such as mass, inertia, wing span, etc. As well as the
 % aerodynamic coefficients and environmental parameters (air density).
 
 % There is no expectation to know and understand how these parameters are
 % derived, but you are expected to be able to source them if required (textbook,
-% online, library etc.).
+% online, library etc.). See Understanding and Simulating Aircraft Dynamics
+% resource sheet on Blackboard for further information and help.
 
 if strcmp(aircraft,'A-4D')
     %----------------------------------------------------------------------
