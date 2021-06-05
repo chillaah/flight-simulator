@@ -36,22 +36,22 @@ f1 = figure; hold off
 
 %TODO: Create a two-axis plot showing the airplane's yaw (left) and 
 % x position (left) versus time.
-f2 = figure; hold off
-    clf; hold on;
-    yyaxis left
-    plot(t,yaw);
-    ylabel('Yaw (rad)');
-%     ylim([-200,800]);
-    yyaxis right
-    plot(t,x, '--');
-    ylabel('x (m)');
-%     ylim([-200,800]);
-    hold off;
-    grid on;
-    
-    title('Flight Yaw and Position in x');
-    xlabel('Time (s)');
-    xlim([0,tf]);
+% f2 = figure; hold off
+%     clf; hold on;
+%     yyaxis left
+%     plot(t,yaw);
+%     ylabel('Yaw (rad)');
+% %     ylim([-200,800]);
+%     yyaxis right
+%     plot(t,x, '--');
+%     ylabel('x (m)');
+% %     ylim([-200,800]);
+%     hold off;
+%     grid on;
+%     
+%     title('Flight Yaw and Position in x');
+%     xlabel('Time (s)');
+%     xlim([0,tf]);
 
 end
 

@@ -76,15 +76,17 @@ for i = 1:Nflights
     Tsim = Tsamp*(Nsamps-1);    %Find flight time
     t = 0:0.4:Tsim;             %Create time vector
     
-    %plot latitude and longitude on the same axis
+    %Plot latitude and longitude on the same axis
     figure
     subplot(3,2,1)
-    cmap = jet(max(round(gndSpeed))+1);
-    SpeedColours = cmap(round(gndSpeed)+1,:); 
+    %Produce colours for each point
+    cmap = jet(max(round(gndSpeed))+1); % # of colours is the maximum groundspeed + 1 (zero velocity must have a colour)
+    SpeedColours = cmap(round(gndSpeed)+1,:); %produce a vector of colours based on the ground speed vector
+    
     scatter(Lon, Lat, 10, SpeedColours, 'filled');
     grid on
     box on
-    title('Top-Down Flight View');
+    title('Flight Top-view');
     ylabel('Latitude [deg]');
     xlabel('Longitude [deg]');
     colormap(cmap);
@@ -101,7 +103,7 @@ for i = 1:Nflights
     scatter(t, Alt, 10, SpeedColours, 'filled');
     grid on
     box on
-    title('Altitude vs Time');
+    title('Flight Side-view');
     ylabel('Altitude [m]');
     xlabel('t [seconds]');
     colormap(cmap);
@@ -115,28 +117,30 @@ for i = 1:Nflights
     
     %Get the velocity components in each direction
     Vdown = zeros(1,Nsamps);
+    Xeast = zeros(1,Nsamps);
+    Xnorth = zeros(1,Nsamps);
     Veast = zeros(1,Nsamps);
     Vnorth = zeros(1,Nsamps);
-    az = zeros(1,Nsamps);
+    
     for ii = 2:Nsamps
        %Down velocity = change in altitude / change in time
        Vdown(ii-1) = -((Alt(ii)- Alt(ii-1))/Tsamp);
        
        %Convert degrees of latitude and longitude to N and E distances
        %[dist(ii),angle(ii)] = distance(Lat(ii-1),Lon(ii-1),Lat(ii),Lon(ii),S);
-       xLat = distance(Lat(ii-1),Lon(ii),Lat(ii),Lon(ii),S);
-       if (Lat(ii-1)> Lat(ii))
-           xLat = -xLat;
-       end
+       Veast(ii-1) = sin(deg2rad(heading(ii-1)))*gndSpeed(ii-1);
+       Vnorth(ii-1) = cos(deg2rad(heading(ii-1)))*gndSpeed(ii-1);
        
-       xLon = distance(Lat(ii),Lon(ii-1),Lat(ii),Lon(ii),S);
-       if (Lon(ii-1)> Lon(ii))
-           xLon = -xLon;
-       end
        
-       Veast(ii-1) = xLat/Tsamp;
-       Vnorth(ii-1) = xLon/Tsamp;
-       az(ii-1) = azimuth(Lat(ii-1)-90,Lon(ii-1),Lat(ii)-90,Lon(ii));
+       
+%        xLon = distance(Lat(ii),Lon(ii-1),Lat(ii),Lon(ii),S);
+%        if (Lon(ii-1)> Lon(ii))
+%            xLon = -xLon;
+%        end
+%        
+%        Veast(ii-1) = (Xeast(ii)- Xeast(ii-1))/Tsamp;
+%        Vnorth(ii-1) = (Xnorth(ii)- Xnorth(ii-1))/Tsamp;
+       %az(ii-1) = azimuth(Lat(ii-1)-90,Lon(ii-1),Lat(ii)-90,Lon(ii));
     end
     
     Mdown = movmean(Vdown,10);
@@ -178,12 +182,12 @@ for i = 1:Nflights
    %set(gca,'FontSize',20);
    
    %find runway heading
-   angle_rw = az(1:i_rw(1));
+   angle_rw = heading(1:i_rw(1));
    angle_rw(gndSpeed(1:i_rw(1)) < threshold) = [];
    heading_rw(i) = mean(angle_rw);
    
    
-   %plot runway
+   %plot 3D visualisation
    subplot(3,2,5)
    plot3(Lat, Lon, Alt)
    hold on
@@ -191,6 +195,11 @@ for i = 1:Nflights
    runway_lat = [Lat_rw(1)-sin(deg2rad(heading_rw(i)))*W_rw, Lat_rw(1)+sin(deg2rad(heading_rw(i)))*W_rw, Lat_rw(2)+sin(deg2rad(heading_rw(i)))*W_rw, Lat_rw(2)-sin(deg2rad(heading_rw(i)))*W_rw, Lat_rw(1)-sin(deg2rad(heading_rw(i)))*W_rw];
    runway_lon = [Lon_rw(1)+cos(deg2rad(heading_rw(i)))*W_rw, Lon_rw(1)-cos(deg2rad(heading_rw(i)))*W_rw, Lon_rw(2)-cos(deg2rad(heading_rw(i)))*W_rw, Lon_rw(2)+cos(deg2rad(heading_rw(i)))*W_rw, Lon_rw(1)+cos(deg2rad(heading_rw(i)))*W_rw];
    plot3( runway_lat,runway_lon , [0,0,0,0,0],'k-' )
+    title('3D flight path');
+    xlabel('x (m)');
+    ylabel('y (m)');
+    zlabel('z (m)');
+   
    
    %sin(deg2rad(heading_rw(i)))*
    
@@ -224,19 +233,19 @@ for i = 1:Nflights
 %Save values from 6th and 7th flights to estimate wind
     if i == 6
         gndSpeed_6 = gndSpeed;
-        az_6 = az;
+        heading_6 = heading;
     end
     
     if i == 7
         gndSpeed_7 = gndSpeed;
-        az_7 = az;
+        heading_7 = heading;
     end
 
 %Save values from 4th flight for later replication
     if i == 4
         t_4 = t;
         v_4 = sqrt(Vnorth.^2 + Veast.^2 + Vdown.^2);
-        yaw_4 = atan2(Veast,Vnorth);
+        yaw_4 = deg2rad(heading);
         pitch_4 = atan((-Vdown)./(sqrt(Vnorth.^2 + Veast.^2)));
         pitch_4(isnan(pitch_4)) = 0;
         
@@ -263,7 +272,7 @@ windSpeed_6 = gndSpeed_6(i_wind_6) - airSpeed_6;
 windSpeed_6 = windSpeed_6(1); 
 
 %find azimuth angle (heading) the direction the wind is at it's greatest
-windDir_6 = az_6(i_wind_6);
+windDir_6 = heading_6(i_wind_6);
 %Choose 1st value of wind direction (tailwind) to find wind heading
 windDir_6 = windDir_6(1);
 
@@ -271,7 +280,7 @@ windDir_6 = windDir_6(1);
 airSpeed_7 = mean(gndSpeed_7(i_wind_7));
 windSpeed_7 = gndSpeed_7(i_wind_7) - airSpeed_7;
 windSpeed_7 = windSpeed_7(1);
-windDir_7 = az_7(i_wind_7);
+windDir_7 = heading_7(i_wind_7);
 windDir_7 = windDir_7(1);
 
 
