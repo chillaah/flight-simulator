@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>bris</name>
+    <Placemark>
+      <Snippet maxLines="0"> </Snippet>
+      <description> </description>
+      <name>Line 1</name>
+      <LineString>
+        <coordinates>153.026,-27.4705,0</coordinates>
+      </LineString>
+    </Placemark>
+  </Document>
+</kml>
