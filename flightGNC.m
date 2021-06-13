@@ -130,7 +130,7 @@ kmlwritepoint(filename, latpoints, lonpoints, nomAlt);
 
 % constant notherly wind
 % 20% of nominal speed
-wind = 20/100 * nmDist; % [knots]
+wind = 20/100 * cSknts; % [knots]
 
 % from sine rule
 A = asind(wind * sind(alpha)/d);
@@ -175,6 +175,108 @@ position = ["Actual"; "North Wind"; "South Wind"];
 xc_pos = [xc; xcL; xcH];
 yc_pos = [yc; ycL; ycH];
 T2 = table(position, xc_pos, yc_pos);
+
+disp(T2);
+
+% 2 fights at 2 different dates & times
+% sourcing real weather data for the respective period
+ref = "http://www.bom.gov.au/climate/dwo/IDCJDW4020.latest.shtml";
+Flights = ["Flight 1", "Flight 2"]';
+Data_and_Time = ["20:13 hrs June 3rd, 2021", "12:43 hrs June 10th, 2021"]';
+Max_Wind_Speed = ["31 km/h [N]", "35 km/h [N]"]';
+T3 = table(Flights, Data_and_Time, Max_Wind_Speed);
+
+disp(T3);
+
+% wind conition (maximum)
+windF = [ 31, 35 ]/1.852; % knots
+
+% flight 1
+headingF1 = alpha - asind(windF(1) * sind(alpha)/d);
+F1_lat = lat1 + km2deg(wp(1,2)) * cosd(headingF1);
+F1_lon = lon1 - km2deg(wp(1,2)) * sind(headingF1);
+F1_halfLat = lat1 + 0.5 * km2deg(wp(1,2)) * cosd(headingF1);
+F1_halfLon = lon1 - 0.5 * km2deg(wp(1,2)) * sind(headingF1);
+
+% flight 2
+headingF2 = alpha - asind(windF(2) * sind(alpha)/d);
+F2_lat = lat1 + km2deg(wp(1,2)) * cosd(headingF2);
+F2_lon = lon1 - km2deg(wp(1,2)) * sind(headingF2);
+F2_halfLat = lat1 + 0.5 * km2deg(wp(1,2)) * cosd(headingF2);
+F2_halfLon = lon1 - 0.5 * km2deg(wp(1,2)) * sind(headingF2);
+
+figure(3);
+geoplot(wp(:,4),wp(:,5), 'LineWidth', 2);
+hold on
+geoplot([lat1, F1_halfLat, F1_lat], [lon1, F1_halfLon, F1_lon], 'LineWidth', 2);
+geoplot([lat1, F2_halfLat, F2_lat], [lon1, F2_halfLon, F2_lon], 'LineWidth', 2);
+[LAT2,LON2] = scircle1(lat1,lon1,km2deg(wp(1,2)));
+geoplot(LAT2, LON2, 'LineWidth', 2);
+title('En Route from Brisbane to Hervey Bay');
+legend('Flight Path', 'Flight 1', 'Flight 2');
+geobasemap streets
+
+% landing difference
+lanDiff = hypot(deg2km(abs(F1_lat-F2_lat)), deg2km(abs(F1_lon-F2_lon)));
+close all;
+
+% selecting flight 2 for simulation
+% nominal wind
+windNom = windF(2); % knots
+
+% variable wind about the nominal value
+% but less than 20%
+% calculated using the formula below
+% the random generator was only performed once and values were stored
+% wind20 = (-windNom * 0.2 - windNom * 0.2) .* rand(10, 1) + windNom * 0.2;
+wind20 = [ 2.09, 0.96, 3.12, -1.06, 2.41, 3.44, -1.69, 1.15, -1.21, 0.88 ];
+
+% variable wind about the nominal value
+% but less than 40%
+% calculated using the formula below
+% the random generator was only performed once and values were stored
+% wind40 = (-windNom * 0.4 - windNom * 0.4) .* rand(10, 1) + windNom * 0.4;
+wind40 = [ -1.93, 7.23, -6.21, -4.54, -3.72, -4.73, 1.76, -1.77, -1.14, -0.45 ];
+
+% simple kinematic motion model
+tSecs = time * 60 * 60;
+dt = 50; % change at each second
+% disChange = cruiseSpeed * dt;
+t = 0 : dt : tSecs + dt;
+% X = zeros(size(t));
+% Y = zeros(size(X));
+% Euc = zeros(size(Y));
+figure(4);
+hold on
+% grid on
+% box on
+
+for i = 1:size(t,2)
+    X(i) = (dt * i)/3600 * cruiseSpeed * cosd(alpha);
+    Y(i) = (dt * i)/3600 * cruiseSpeed * sind(alpha);
+    Euc(i) = hypot(X(i), Y(i));
+    % plot(t(i), Euc(i), 'k');
+end
+% xlabel('time [s]');
+% ylabel('distance [km]');
+numEl = round(length(t)/length(wind20));
+winddd = [];
+for j = 1:10
+    winddd = [winddd; repmat(wind20(j), [numEl 1])];
+end
+% winddd = winddd';
+winddd(length(winddd)+1:length(t), :) = 0;
+wind20 = winddd;
+
+heading20 = alpha - asind(wind20 * sind(alpha)/d);
+for i = 1:size(t,2)
+    X20(i) = (dt * i)/3600 * cruiseSpeed * cosd(heading20(i));
+    Y20(i) = (dt * i)/3600 * cruiseSpeed * sind(heading20(i));
+    Euc20(i) = hypot(X(i), Y(i));
+    % plot(t(i), Euc20(i), 'r');
+end
+hold off
+
 
 % figure(3);
 % plot([ 0 -nmDist*cosd(alpha)], [0 -nmDist*sind(alpha)]);

@@ -2,8 +2,8 @@ close all; clear; clc
 
 t = 1:0.1:10;
 X(4,:) = ones(1, length(t) - 2);
-A = 1;
-B = 1;
+A = randn(4,4);
+B = ones(size(A,1),1);
 dt = 1/t(end);
 % kml stuff
 for i = 2:length(t)
@@ -20,3 +20,6 @@ for i = 2:length(t)
     X_d = A * X(:,i-1) + B * u;
     X(:,i) = X(:,i-1) + dt*X_d;
 end
+
+C = eye(4);
+D = zeros(size(C,2),1);
