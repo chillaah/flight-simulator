@@ -222,27 +222,27 @@ close all;
 
 % selecting flight 2 for simulation
 % nominal wind
-windNom = windF(2); % knots
+windNom = windF(2)*1.852; % knots
 
 % variable wind about the nominal value
 % but less than 20%
 % calculated using the formula below
 % the random generator was only performed once and values were stored
-% wind20 = (-windNom * 0.2 - windNom * 0.2) .* rand(10, 1) + windNom * 0.2;
-wind20 = [ 2.09, 0.96, 3.12, -1.06, 2.41, 3.44, -1.69, 1.15, -1.21, 0.88 ];
+wind20 = (windNom * 0.8 - windNom * 1.2) .* rand(10, 1) + windNom * 1.2;
+% wind20 = [ 16.7601      17.4336      22.6041       16.304      15.7059      16.8502      22.3557      19.8193      17.3538      17.1635 ];
 
 % variable wind about the nominal value
 % but less than 40%
 % calculated using the formula below
 % the random generator was only performed once and values were stored
-% wind40 = (-windNom * 0.4 - windNom * 0.4) .* rand(10, 1) + windNom * 0.4;
-wind40 = [ -1.93, 7.23, -6.21, -4.54, -3.72, -4.73, 1.76, -1.77, -1.14, -0.45 ];
+wind40 = (windNom * 0.6 - windNom * 1.4) .* rand(10, 1) + windNom * 1.4;
+% wind40 = [ -1.93, 7.23, -6.21, -4.54, -3.72, -4.73, 1.76, -1.77, -1.14, -0.45 ];
 
 % simple kinematic motion model
 tSecs = time * 60 * 60;
 dt = 50; % change at each second
 % disChange = cruiseSpeed * dt;
-t = 0 : dt : tSecs + dt;
+t = 0 : dt : tSecs;
 % X = zeros(size(t));
 % Y = zeros(size(X));
 % Euc = zeros(size(Y));
@@ -250,13 +250,14 @@ t = 0 : dt : tSecs + dt;
 % box on
 
 for i = 1:size(t,2)
-    X(i) = (dt * i)/3600 * cruiseSpeed * cosd(alpha);
-    Y(i) = (dt * i)/3600 * cruiseSpeed * sind(alpha);
+    X(i) = (dt * i)/3600 * cruiseSpeed * sind(alpha);
+    Y(i) = (dt * i)/3600 * cruiseSpeed * cosd(alpha);
     Euc(i) = hypot(X(i), Y(i));
     % plot(t(i), Euc(i), 'k');
 end
 
 % wind 20
+
 % xlabel('time [s]');
 % ylabel('distance [km]');
 numEl = round(length(t)/length(wind20));
@@ -265,39 +266,63 @@ for j = 1:10
     winddd = [winddd; repmat(wind20(j), [numEl 1])];
 end
 
-winddd(length(winddd)+1:length(t), :) = 0;
+winddd(length(winddd)+1:length(t), :) = wind20(end);
 wind20 = winddd;
 heading20 = alpha - asind(wind20 * sind(alpha)/d);
 for i = 1:size(t,2)
-    X20(i) = (dt * i)/3600 * cruiseSpeed * cosd(heading20(i));
-    Y20(i) = (dt * i)/3600 * cruiseSpeed * sind(heading20(i));
+    X20(i) = (dt * i)/3600 * cruiseSpeed * sind(heading20(i));
+    Y20(i) = (dt * i)/3600 * cruiseSpeed * cosd(heading20(i));
     Euc20(i) = hypot(X20(i), Y20(i));
     % plot(t(i), Euc20(i), 'r');
 end
 
 % wind 40
-numEl = round(length(t)/length(wind20));
+numEl = round(length(t)/length(wind40));
 winddd = [];
 for j = 1:10
     winddd = [winddd; repmat(wind40(j), [numEl 1])];
 end
 
-winddd(length(winddd)+1:length(t), :) = 0;
+winddd(length(winddd)+1:length(t), :) = wind40(end);
 wind40 = winddd;
 heading40 = alpha - asind(wind40 * sind(alpha)/d);
 for i = 1:size(t,2)
-    X40(i) = (dt * i)/3600 * cruiseSpeed * cosd(heading40(i));
-    Y40(i) = (dt * i)/3600 * cruiseSpeed * sind(heading40(i));
+    X40(i) = (dt * i)/3600 * cruiseSpeed * sind(heading40(i));
+    Y40(i) = (dt * i)/3600 * cruiseSpeed * cosd(heading40(i));
     Euc40(i) = hypot(X40(i), Y40(i));
     % plot(t(i), Euc20(i), 'r');
 end
 
 figure(4);
-plot(t, Euc, 'k', 'LineWidth', 2);
+plot(t, X, 'k--', 'LineWidth', 2);
 hold on
-plot(t, Euc20, 'r--', 'LineWidth', 2);
-plot(t, Euc40, 'b--', 'LineWidth', 2);
+grid on
+box on
+plot(t, X20, 'r--', 'LineWidth', 2);
+plot(t, X40, 'b--', 'LineWidth', 2);
+title('En Route from Brisbane to Hervey Bay');
+legend('Flight Path', 'Flight 20% Variable Wind', 'Flight 40% Variable Wind');
 
+figure(5);
+plot(t, Y, 'k--', 'LineWidth', 2);
+hold on
+grid on
+box on
+plot(t, Y20, 'r--', 'LineWidth', 2);
+plot(t, Y40, 'b--', 'LineWidth', 2);
+title('En Route from Brisbane to Hervey Bay');
+legend('Flight Path', 'Flight 20% Variable Wind', 'Flight 40% Variable Wind');
+
+figure(6);
+geoplot(km2deg(Y)+lat1, -km2deg(X)+lon1, 'k--', 'LineWidth', 2);
+hold on
+grid on
+box on
+geoplot(km2deg(Y20)+lat1, -km2deg(X20)+lon1, 'r--', 'LineWidth', 2);
+geoplot(km2deg(Y40)+lat1, -km2deg(X20)+lon1, 'b--', 'LineWidth', 2);
+title('En Route from Brisbane to Hervey Bay');
+legend('Flight Path', 'Flight 20% Variable Wind', 'Flight 40% Variable Wind');
+geobasemap streets
 
 % figure(3);
 % plot([ 0 -nmDist*cosd(alpha)], [0 -nmDist*sind(alpha)]);
