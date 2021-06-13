@@ -246,8 +246,6 @@ t = 0 : dt : tSecs + dt;
 % X = zeros(size(t));
 % Y = zeros(size(X));
 % Euc = zeros(size(Y));
-figure(4);
-hold on
 % grid on
 % box on
 
@@ -257,6 +255,8 @@ for i = 1:size(t,2)
     Euc(i) = hypot(X(i), Y(i));
     % plot(t(i), Euc(i), 'k');
 end
+
+% wind 20
 % xlabel('time [s]');
 % ylabel('distance [km]');
 numEl = round(length(t)/length(wind20));
@@ -264,18 +264,39 @@ winddd = [];
 for j = 1:10
     winddd = [winddd; repmat(wind20(j), [numEl 1])];
 end
-% winddd = winddd';
+
 winddd(length(winddd)+1:length(t), :) = 0;
 wind20 = winddd;
-
 heading20 = alpha - asind(wind20 * sind(alpha)/d);
 for i = 1:size(t,2)
     X20(i) = (dt * i)/3600 * cruiseSpeed * cosd(heading20(i));
     Y20(i) = (dt * i)/3600 * cruiseSpeed * sind(heading20(i));
-    Euc20(i) = hypot(X(i), Y(i));
+    Euc20(i) = hypot(X20(i), Y20(i));
     % plot(t(i), Euc20(i), 'r');
 end
-hold off
+
+% wind 40
+numEl = round(length(t)/length(wind20));
+winddd = [];
+for j = 1:10
+    winddd = [winddd; repmat(wind40(j), [numEl 1])];
+end
+
+winddd(length(winddd)+1:length(t), :) = 0;
+wind40 = winddd;
+heading40 = alpha - asind(wind40 * sind(alpha)/d);
+for i = 1:size(t,2)
+    X40(i) = (dt * i)/3600 * cruiseSpeed * cosd(heading40(i));
+    Y40(i) = (dt * i)/3600 * cruiseSpeed * sind(heading40(i));
+    Euc40(i) = hypot(X40(i), Y40(i));
+    % plot(t(i), Euc20(i), 'r');
+end
+
+figure(4);
+plot(t, Euc, 'k', 'LineWidth', 2);
+hold on
+plot(t, Euc20, 'r--', 'LineWidth', 2);
+plot(t, Euc40, 'b--', 'LineWidth', 2);
 
 
 % figure(3);
