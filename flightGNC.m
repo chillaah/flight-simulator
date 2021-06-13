@@ -218,11 +218,10 @@ geobasemap streets
 
 % landing difference
 lanDiff = hypot(deg2km(abs(F1_lat-F2_lat)), deg2km(abs(F1_lon-F2_lon)));
-close all;
 
 % selecting flight 2 for simulation
 % nominal wind
-windNom = windF(2)*1.852; % knots
+windNom = windF(2)*1.852; % kmph
 
 % variable wind about the nominal value
 % but less than 20%
@@ -240,27 +239,24 @@ wind40 = (windNom * 0.6 - windNom * 1.4) .* rand(10, 1) + windNom * 1.4;
 
 % simple kinematic motion model
 tSecs = time * 60 * 60;
-dt = 50; % change at each second
+dt = 1; % change at each 10 seconds
 % disChange = cruiseSpeed * dt;
-t = 0 : dt : tSecs;
-% X = zeros(size(t));
-% Y = zeros(size(X));
-% Euc = zeros(size(Y));
-% grid on
-% box on
+t = 0 : dt : tSecs + dt;
+X = zeros(size(t));
+Y = zeros(size(X));
+Euc = zeros(size(Y));
 
 for i = 1:size(t,2)
     X(i) = (dt * i)/3600 * cruiseSpeed * sind(alpha);
     Y(i) = (dt * i)/3600 * cruiseSpeed * cosd(alpha);
     Euc(i) = hypot(X(i), Y(i));
-    % plot(t(i), Euc(i), 'k');
 end
 
 % wind 20
-
-% xlabel('time [s]');
-% ylabel('distance [km]');
 numEl = round(length(t)/length(wind20));
+X20 = zeros(size(t));
+Y20 = zeros(size(X));
+Euc20 = zeros(size(Y));
 winddd = [];
 for j = 1:10
     winddd = [winddd; repmat(wind20(j), [numEl 1])];
@@ -273,11 +269,13 @@ for i = 1:size(t,2)
     X20(i) = (dt * i)/3600 * cruiseSpeed * sind(heading20(i));
     Y20(i) = (dt * i)/3600 * cruiseSpeed * cosd(heading20(i));
     Euc20(i) = hypot(X20(i), Y20(i));
-    % plot(t(i), Euc20(i), 'r');
 end
 
 % wind 40
-numEl = round(length(t)/length(wind40));
+numEl = round(length(t)/length(wind20));
+X40 = zeros(size(t));
+Y40 = zeros(size(X));
+Euc40 = zeros(size(Y));
 winddd = [];
 for j = 1:10
     winddd = [winddd; repmat(wind40(j), [numEl 1])];
@@ -290,7 +288,6 @@ for i = 1:size(t,2)
     X40(i) = (dt * i)/3600 * cruiseSpeed * sind(heading40(i));
     Y40(i) = (dt * i)/3600 * cruiseSpeed * cosd(heading40(i));
     Euc40(i) = hypot(X40(i), Y40(i));
-    % plot(t(i), Euc20(i), 'r');
 end
 
 figure(4);
@@ -300,8 +297,11 @@ grid on
 box on
 plot(t, X20, 'r--', 'LineWidth', 2);
 plot(t, X40, 'b--', 'LineWidth', 2);
-title('En Route from Brisbane to Hervey Bay');
-legend('Flight Path', 'Flight 20% Variable Wind', 'Flight 40% Variable Wind');
+title('Change of X-Position');
+xlabel('time [s]');
+ylabel('distance [km]');
+legend('Flight Path', 'Flight 20% Variable Wind', 'Flight 40% Variable Wind',...
+       'location', 'best');
 
 figure(5);
 plot(t, Y, 'k--', 'LineWidth', 2);
@@ -310,8 +310,11 @@ grid on
 box on
 plot(t, Y20, 'r--', 'LineWidth', 2);
 plot(t, Y40, 'b--', 'LineWidth', 2);
-title('En Route from Brisbane to Hervey Bay');
-legend('Flight Path', 'Flight 20% Variable Wind', 'Flight 40% Variable Wind');
+title('Change of Y-Position');
+xlabel('time [s]');
+ylabel('distance [km]');
+legend('Flight Path', 'Flight 20% Variable Wind', 'Flight 40% Variable Wind',...
+       'location', 'best');
 
 figure(6);
 geoplot(km2deg(Y)+lat1, -km2deg(X)+lon1, 'k--', 'LineWidth', 2);
@@ -321,8 +324,14 @@ box on
 geoplot(km2deg(Y20)+lat1, -km2deg(X20)+lon1, 'r--', 'LineWidth', 2);
 geoplot(km2deg(Y40)+lat1, -km2deg(X20)+lon1, 'b--', 'LineWidth', 2);
 title('En Route from Brisbane to Hervey Bay');
-legend('Flight Path', 'Flight 20% Variable Wind', 'Flight 40% Variable Wind');
+legend('Flight Path', 'Flight 20% Variable Wind', 'Flight 40% Variable Wind',...
+       'location', 'best');
 geobasemap streets
+
+
+
+
+
 
 % figure(3);
 % plot([ 0 -nmDist*cosd(alpha)], [0 -nmDist*sind(alpha)]);
@@ -333,8 +342,6 @@ geobasemap streets
 % plot([0 xcH], [0 ycH]);
 % [LAT,LON] = scircle1(0,0,km2deg(61900));
 % plot(LAT, LON, 'LineWidth', 2);
-
-
 
 % % define state space
 % % state 1 - angle of attack
